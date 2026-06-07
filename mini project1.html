@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Progress Tracker</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+    padding:30px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:white;
+    margin-bottom:25px;
+}
+
+.book-form{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:25px;
+}
+
+.book-form input,
+.book-form select{
+    flex:1;
+    min-width:180px;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+.book-form button{
+    background:#667eea;
+    color:white;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.book-form button:hover{
+    background:#4f63d8;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.card h2{
+    color:#667eea;
+}
+
+.book-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:20px;
+}
+
+.book{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.book-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.status{
+    padding:5px 12px;
+    border-radius:20px;
+    color:white;
+    font-size:13px;
+}
+
+.notstarted{
+    background:#ff9800;
+}
+
+.reading{
+    background:#2196f3;
+}
+
+.completed{
+    background:#4caf50;
+}
+
+.progress-bar{
+    width:100%;
+    height:18px;
+    background:#ddd;
+    border-radius:20px;
+    overflow:hidden;
+    margin:10px 0;
+}
+
+.progress{
+    height:100%;
+    background:linear-gradient(to right,#667eea,#764ba2);
+    width:0%;
+    transition:0.5s;
+}
+
+.progress-input{
+    width:100%;
+    margin-top:10px;
+}
+
+.delete-btn{
+    margin-top:10px;
+    background:red;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.delete-btn:hover{
+    background:darkred;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>📚 Book Progress Tracker</h1>
+
+<div class="book-form">
+    <input type="text" id="bookTitle" placeholder="Book Title">
+    <input type="text" id="author" placeholder="Author">
+    <button onclick="addBook()">Add Book</button>
+</div>
+
+<div class="stats">
+    <div class="card">
+        <h2 id="totalBooks">0</h2>
+        <p>Total Books</p>
+    </div>
+
+    <div class="card">
+        <h2 id="readingBooks">0</h2>
+        <p>Reading</p>
+    </div>
+
+    <div class="card">
+        <h2 id="completedBooks">0</h2>
+        <p>Completed</p>
+    </div>
+</div>
+
+<div class="book-list" id="bookList"></div>
+
+</div>
+
+<script>
+
+let books = [
+{
+title:"Atomic Habits",
+author:"James Clear",
+progress:40
+},
+{
+title:"Rich Dad Poor Dad",
+author:"Robert Kiyosaki",
+progress:100
+}
+];
+
+function getStatus(progress){
+    if(progress === 0) return "Not Started";
+    if(progress === 100) return "Completed";
+    return "Reading";
+}
+
+function getStatusClass(progress){
+    if(progress === 0) return "notstarted";
+    if(progress === 100) return "completed";
+    return "reading";
+}
+
+function renderBooks(){
+
+    const bookList = document.getElementById("bookList");
+    bookList.innerHTML = "";
+
+    let readingCount = 0;
+    let completedCount = 0;
+
+    books.forEach((book,index)=>{
+
+        if(book.progress > 0 && book.progress < 100)
+            readingCount++;
+
+        if(book.progress === 100)
+            completedCount++;
+
+        bookList.innerHTML += `
+        <div class="book">
+
+            <div class="book-header">
+                <h3>${book.title}</h3>
+                <span class="status ${getStatusClass(book.progress)}">
+                    ${getStatus(book.progress)}
+                </span>
+            </div>
+
+            <p><strong>Author:</strong> ${book.author}</p>
+
+            <div class="progress-bar">
+                <div class="progress"
+                style="width:${book.progress}%">
+                </div>
+            </div>
+
+            <p>${book.progress}% Completed</p>
+
+            <input
+            type="range"
+            min="0"
+            max="100"
+            value="${book.progress}"
+            class="progress-input"
+            oninput="updateProgress(${index},this.value)"
+            >
+
+            <button class="delete-btn"
+            onclick="deleteBook(${index})">
+            Delete
+            </button>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("totalBooks").innerText = books.length;
+    document.getElementById("readingBooks").innerText = readingCount;
+    document.getElementById("completedBooks").innerText = completedCount;
+}
+
+function addBook(){
+
+    const title = document.getElementById("bookTitle").value;
+    const author = document.getElementById("author").value;
+
+    if(title === "" || author === ""){
+        alert("Please enter book details");
+        return;
+    }
+
+    books.push({
+        title:title,
+        author:author,
+        progress:0
+    });
+
+    document.getElementById("bookTitle").value="";
+    document.getElementById("author").value="";
+
+    renderBooks();
+}
+
+function updateProgress(index,value){
+    books[index].progress = Number(value);
+    renderBooks();
+}
+
+function deleteBook(index){
+    books.splice(index,1);
+    renderBooks();
+}
+
+renderBooks();
+
+</script>
+
+</body>
+</html>
